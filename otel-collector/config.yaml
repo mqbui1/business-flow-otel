@@ -1,0 +1,46 @@
+# OTel Collector config for the Business Flow milestone pipeline.
+#
+# Milestones are emitted as OTel LogRecords (not spans) with the attribute
+# schema defined in backend/app/schema.py:
+#   business.process         string  e.g. "order_fulfillment"
+#   business.milestone       string  e.g. "order_placed", "payment_captured"
+#   business.correlation_id  string  the ID that stitches milestones together
+#   business.exception       bool    true if this milestone represents a failure
+#   business.revenue         double  optional, monetary value at this step
+#   trace_id / span_id       optional cross-reference into APM if the milestone
+#                             was emitted from inside an instrumented request
+#
+# Ingestion path: OTLP logs receiver -> batch -> splunkhecexporter -> Splunk index.
+# Requires the otelcol-contrib distribution (splunkhecexporter is not in otelcol-core).
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+
+exporters:
+  splunk_hec:
+    token: ${env:SPLUNK_HEC_TOKEN}
+    endpoint: ${env:SPLUNK_HEC_ENDPOINT} # e.g. https://http-inputs-<host>.splunkcloud.com/services/collector
+    source: business-flow-otel
+    sourcetype: business:milestone
+    index: ${env:SPLUNK_HEC_INDEX} # e.g. business_milestones
+    tls:
+      insecure_skip_verify: false
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [splunk_hec, debug]

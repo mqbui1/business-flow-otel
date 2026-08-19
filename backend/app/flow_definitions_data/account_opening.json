@@ -1,0 +1,10 @@
+{
+  "milestones": {
+    "documents_submitted": {
+      "display_name": "Documents Submitted",
+      "description": "KYC docs uploaded",
+      "is_exception": false,
+      "correlation_id_field": "business.correlation_id"
+    }
+  }
+}
