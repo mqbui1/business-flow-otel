@@ -48,6 +48,10 @@ attributes (see `backend/app/schema.py`):
    instrumentation calls (e.g. map `order.status="shipped"` ->
    `business.milestone="order_shipped"`).
 
+See [`docs/instrumentation-examples.md`](docs/instrumentation-examples.md) for
+concrete Python/Java/Node.js/Go snippets and the Collector-side transform
+processor example.
+
 ## Seeding demo data
 
 Two generator scripts in `scripts/`, both driven by the same flow model
