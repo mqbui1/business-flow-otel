@@ -52,6 +52,13 @@ See [`docs/instrumentation-examples.md`](docs/instrumentation-examples.md) for
 concrete Python/Java/Node.js/Go snippets and the Collector-side transform
 processor example.
 
+Raw events alone aren't what the UI renders, though — each chart is backed
+by its own SPL aggregation that reshapes the raw `business.*` events into
+that chart's specific JSON shape. See
+[`docs/data-model.md`](docs/data-model.md) for the exact SPL query + JSON
+response + TS type behind every view (KPIs, Tree, Funnel, Flow instances,
+instance detail, KPI sparklines, entity edit panel).
+
 ## Seeding demo data
 
 Two generator scripts in `scripts/`, both driven by the same flow model
