@@ -58,6 +58,7 @@ export default function App() {
       api.funnel(process).then((r) => setFunnel(r as unknown as FunnelStep[])),
       api.instances(process).then((r) => setInstances(r as unknown as Instance[])),
       api.definition(process).then((r) => setDefinition(r as unknown as FlowDefinition)),
+      api.kpiTimeseries(process).then((r) => setKpiTimeseries(r as unknown as KpiTimeseriesPoint[])),
     ]).then((results) => {
       const failed = results.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
       if (failed.length) {
@@ -93,7 +94,6 @@ export default function App() {
 
   const handleViewDetails = () => {
     setShowKpiDetails(true);
-    api.kpiTimeseries(process).then((r) => setKpiTimeseries(r as unknown as KpiTimeseriesPoint[]));
   };
 
   const filteredInstances = useMemo(
@@ -147,9 +147,7 @@ export default function App() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 16, alignItems: "start" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-            <Card>
-              <KpiHeader kpis={kpis} durations={durations} onViewDetails={handleViewDetails} />
-            </Card>
+            <KpiHeader kpis={kpis} durations={durations} timeseries={kpiTimeseries} onViewDetails={handleViewDetails} />
 
             <Card title="Tree">
               <TreeView
