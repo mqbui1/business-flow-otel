@@ -3,6 +3,8 @@
 Business Flow / milestone-tracking demo (Dynatrace Business Flow-style funnel,
 tree, and drill-down UI) backed by Splunk, fed via OpenTelemetry.
 
+![Dashboard screenshot](docs/screenshots/dashboard.png)
+
 ## Architecture
 
 ```

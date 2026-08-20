@@ -1,9 +1,21 @@
 import dagre from "dagre";
-import { useMemo } from "react";
-import ReactFlow, { Background, BackgroundVariant, Edge, Node, NodeMouseHandler, Position } from "reactflow";
+import { useEffect, useMemo } from "react";
+import ReactFlow, {
+  Background,
+  BackgroundVariant,
+  Edge,
+  Node,
+  NodeMouseHandler,
+  Position,
+  ReactFlowProvider,
+  useReactFlow,
+} from "reactflow";
 import "reactflow/dist/style.css";
 import type { FlowDefinition, FlowEdge, MilestoneNode } from "../types";
 import { colors } from "../theme";
+
+const NODE_WIDTH = 200;
+const NODE_HEIGHT = 60;
 
 function layout(
   milestones: MilestoneNode[],
@@ -15,7 +27,7 @@ function layout(
   g.setGraph({ rankdir: "LR" });
   g.setDefaultEdgeLabel(() => ({}));
 
-  milestones.forEach((m) => g.setNode(m["business.milestone"], { width: 200, height: 60 }));
+  milestones.forEach((m) => g.setNode(m["business.milestone"], { width: NODE_WIDTH, height: NODE_HEIGHT }));
   flowEdges.forEach((e) => g.setEdge(e.source, e.target));
   dagre.layout(g);
 
@@ -25,9 +37,12 @@ function layout(
     const meta = definition?.milestones[m["business.milestone"]];
     const displayName = meta?.display_name ?? m["business.milestone"];
     const isSelected = selectedMilestone === m["business.milestone"];
+    // dagre positions nodes by center; react-flow positions by top-left corner.
     return {
       id: m["business.milestone"],
-      position: { x: pos?.x ?? 0, y: pos?.y ?? 0 },
+      position: { x: (pos?.x ?? 0) - NODE_WIDTH / 2, y: (pos?.y ?? 0) - NODE_HEIGHT / 2 },
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
       data: { label: `${displayName}\n${m.volume} (${m.exceptions} exceptions)` },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -58,6 +73,19 @@ function layout(
   return { nodes, edges };
 }
 
+const FIT_VIEW_OPTIONS = { padding: 0.15, maxZoom: 1.5, duration: 200 };
+
+function FitViewOnChange({ nodes }: { nodes: Node[] }) {
+  const { fitView } = useReactFlow();
+  useEffect(() => {
+    if (!nodes.length) return;
+    // defer a tick so react-flow has measured actual node DOM sizes first
+    const id = requestAnimationFrame(() => fitView(FIT_VIEW_OPTIONS));
+    return () => cancelAnimationFrame(id);
+  }, [nodes, fitView]);
+  return null;
+}
+
 export function TreeView({
   milestones,
   edges: flowEdges,
@@ -81,9 +109,18 @@ export function TreeView({
 
   return (
     <div style={{ height: 400, background: colors.pageBg, borderRadius: 6 }}>
-      <ReactFlow nodes={nodes} edges={edges} fitView onNodeClick={handleNodeClick}>
-        <Background variant={BackgroundVariant.Dots} color={colors.border} gap={16} />
-      </ReactFlow>
+      <ReactFlowProvider>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          fitView
+          fitViewOptions={FIT_VIEW_OPTIONS}
+          onNodeClick={handleNodeClick}
+        >
+          <Background variant={BackgroundVariant.Dots} color={colors.border} gap={16} />
+          <FitViewOnChange nodes={nodes} />
+        </ReactFlow>
+      </ReactFlowProvider>
     </div>
   );
 }
